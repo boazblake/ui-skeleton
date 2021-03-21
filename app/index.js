@@ -1,54 +1,26 @@
-import routes from "./routes.js"
-import model from "./model.js"
-
-const root = document.body
-let winW = window.innerWidth
-
-if (module.hot) {
-  module.hot.accept()
+const App = {
+  oncreate: ({ dom, state }) => {
+    state.pane = new CupertinoPane(
+      dom, //pane container
+      {
+        parentElement: "body",
+        breaks: {
+          top: { enabled: true, height: 500, bounce: true },
+          middle: { enabled: true, height: 300, bounce: true },
+          bottom: { enabled: true, height: 80 },
+        },
+        onDrag: (a) => console.log("Drag event", a),
+      }
+    )
+    state.pane.present({ animate: true })
+  },
+  view: () =>
+    m(
+      ".cupertino-pane",
+      { style: { margin: "20px" } },
+      m("h1", "Header"),
+      m(".content", "content")
+    ),
 }
 
-if (process.env.NODE_ENV == "development") {
-  console.log("Looks like we are in development mode!")
-} else {
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./service-worker.js")
-        .then((registration) => {
-          console.log("⚙️ SW registered: ", registration)
-        })
-        .catch((registrationError) => {
-          console.log("🧟 SW registration failed: ", registrationError)
-        })
-    })
-  }
-}
-
-// set display profiles
-const getProfile = (w) => {
-  if (w < 668) return "phone"
-  if (w < 920) return "tablet"
-  return "desktop"
-}
-
-const checkWidth = (winW) => {
-  const w = window.innerWidth
-  if (winW !== w) {
-    winW = w
-    var lastProfile = model.settings.profile
-    model.settings.profile = getProfile(w)
-    if (lastProfile != model.settings.profile) m.redraw()
-  }
-  return requestAnimationFrame(checkWidth)
-}
-
-model.settings.profile = getProfile(winW)
-
-checkWidth(winW)
-
-if (sessionStorage.getItem("user")) {
-  model.user = JSON.parse(sessionStorage.getItem("user"))
-}
-
-m.route(root, "/home", routes(model))
+m.mount(document.body, App)
